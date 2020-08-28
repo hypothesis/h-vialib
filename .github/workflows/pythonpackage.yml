@@ -1,0 +1,119 @@
+name: Python package
+on: [push]
+
+jobs:
+  test:
+    name: Test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v1
+
+    - name: Show git ref
+      run: |
+        echo ${{ github.ref }}
+
+    - name: Set up Python 3.6
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
+
+    - name: Check formatting
+      run: |
+        pip install black isort
+        black --check src tests bin
+        isort --quiet --check-only .
+
+    # Dependencies are checked by pylint,
+    # so this is as late as we can leave this
+    - name: Install dependencies
+      run: |
+        pip install .[tests] cookiecutter
+
+    - name: Lint with pylint
+      run: |
+        pip install pylint
+        pylint --reports=y src bin
+        pylint --reports=y --rcfile=tests/.pylintrc tests
+
+    - name: Run unit tests
+      continue-on-error: true
+      run: |
+        pip install pytest pytest-html coverage
+        coverage run -m pytest --html=unit_test_report.html --self-contained-html
+        touch unit_tests_passed
+
+    - name: Archive unit test report
+      uses: actions/upload-artifact@v1
+      with:
+        name: unit_test_report
+        path: unit_test_report.html
+
+    - name: Check unit test report
+      run: cat unit_tests_passed
+
+    - name: Run coverage
+      continue-on-error: true
+      run: |
+        coverage combine
+        coverage html --directory coverage_report --fail-under=0
+        coverage report
+        touch coverage_passed
+
+    - name: Archive coverage report
+      uses: actions/upload-artifact@v1
+      with:
+        name: coverage_report
+        path: coverage_report
+
+    - name: Check coverage report
+      run: cat coverage_passed
+
+  package:
+    name: Package
+    needs: test
+    runs-on: ubuntu-latest
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v1
+
+    - name: Set up Python 3.6
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
+
+    - name: Package
+      run: |
+        pip install twine wheel
+        BUILD=${{ github.ref }} python setup.py bdist_wheel sdist
+        twine check dist/*
+
+    - name: Archive packages
+      uses: actions/upload-artifact@v1
+      with:
+        name: dist
+        path: dist
+
+  publish:
+    name: Publish
+    needs: package
+    runs-on: ubuntu-latest
+    if: startsWith(github.ref, 'refs/tags/v')
+
+    steps:
+    - name: Download built packages
+      uses: actions/download-artifact@v1
+      with:
+        name: dist
+
+    - name: Set up Python 3.6
+      uses: actions/setup-python@v1
+      with:
+        python-version: 3.6
+
+    - name: Upload to PyPI
+      run: |
+        pip install twine
+        twine upload -u __token__ -p ${{ secrets.PYPI_TOKEN }} dist/*

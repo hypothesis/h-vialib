@@ -1,0 +1,14 @@
+{
+    "project_name": "Via Lib",
+    "description": "Library functions for use with Via",
+    "project_slug": "h-vialib",
+    "pkg_name": "h_vialib",
+    "options": {
+        "disable_replay": [
+            "README.md",
+            "setup.cfg",
+            "src/h_vialib/__init__.py"
+        ]
+    },
+    "_template": "gh:hypothesis/h-cookiecutter-pypackage"
+}
