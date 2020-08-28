@@ -47,7 +47,7 @@ class Configuration:
         return Params.split(merged_params)
 
     @classmethod
-    def extract_from_wsgi_environment(cls, http_env):  # pragma: no cover
+    def extract_from_wsgi_environment(cls, http_env):
         """Extract Via and H config from a WSGI environment object.
 
         :param http_env: WSGI provided environment variable
@@ -58,7 +58,7 @@ class Configuration:
         return cls.extract_from_params(params)
 
     @classmethod
-    def extract_from_url(cls, url):  # pragma: no cover
+    def extract_from_url(cls, url):
         """Extract Via and H config from a URL.
 
         :param url: A URL to extract config from
@@ -69,7 +69,7 @@ class Configuration:
         return cls.extract_from_params(params)
 
     @classmethod
-    def strip_from_url(cls, url):  # pragma: no cover
+    def strip_from_url(cls, url):
         """Remove any Via configuration parameters from the URL.
 
         If the URL has no parameters left, remove the query string entirely.
@@ -87,7 +87,7 @@ class Configuration:
         return url_parts._replace(query=urlencode(non_via)).geturl()
 
     @classmethod
-    def add_to_url(cls, url, via_params, client_params):  # pragma: no cover
+    def add_to_url(cls, url, via_params, client_params):
         """Add configuration parameters to a given URL.
 
         This will merge and preserve any parameters already on the URL.
@@ -99,6 +99,7 @@ class Configuration:
         """
         url_parts = urlparse(url)
         _, non_via = Params.separate(parse_qsl(url_parts.query))
+
         flat_params = FlatDict.flatten(Params.join(via_params, client_params))
 
         non_via.extend(flat_params.items())
