@@ -14,6 +14,7 @@ class Params:
         "requestConfigFromFrame",
         # Things which seem safe
         "enableExperimentalNewNoteButton",
+        "experimental",  # Nested value for experimental features
         "externalContainerSelector",
         "focus",
         "showHighlights",
