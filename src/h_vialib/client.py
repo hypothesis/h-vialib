@@ -3,6 +3,8 @@
 import re
 from urllib.parse import urlencode, urlparse
 
+from h_vialib.secure import ViaSecureURL
+
 
 class ViaDoc:  # pylint: disable=too-few-public-methods
     """A doc we want to proxy with content type."""
@@ -29,14 +31,16 @@ class ViaDoc:  # pylint: disable=too-few-public-methods
 class ViaClient:  # pylint: disable=too-few-public-methods
     """A small wrapper to make calling Via easier."""
 
-    def __init__(self, service_url, host_url):
+    def __init__(self, service_url, host_url, secret):
         """Initialize a ViaClient pointing to a `via_url` via server.
 
         ￼
-        :param via_url location of the via server
-        :param host_url origin of the request
+        :param service_url: location of the via server
+        :param host_url: origin of the request
+        :param secret: shared secret to sign the URL
         """
-        self.service_url = urlparse(service_url)
+        self._service_url = urlparse(service_url)
+        self._secure_url = ViaSecureURL(secret)
 
         # Default via parameters
         self.options = {
@@ -46,11 +50,14 @@ class ViaClient:  # pylint: disable=too-few-public-methods
             "via.external_link_mode": "new-tab",
         }
 
-    def url_for(self, doc):
+    def url_for(self, url, content_type=None):
         """Generate a Via url to proxy `doc`.
 
-        :param doc a ViaDoc representation of a resource
+        :param url: URL to proxy thru Via
+        :param content_type: content type, if known, of the document
+        :return: Full via url to proxy `url` including signature
         """
+        doc = ViaDoc(url, content_type)
 
         # Optimisation to skip routing for documents we know are PDFs
         path = "/pdf" if doc.is_pdf else "/route"
@@ -58,4 +65,6 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         options = {"url": doc.url}
         options.update(self.options)
 
-        return self.service_url._replace(path=path, query=urlencode(options)).geturl()
+        via_url = self._service_url._replace(path=path, query=urlencode(options))
+
+        return self._secure_url.create(via_url.geturl())
