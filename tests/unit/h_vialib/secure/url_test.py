@@ -1,4 +1,4 @@
-from datetime import datetime, timedelta
+from datetime import datetime, timedelta, timezone
 
 import pytest
 from h_matchers import Any
@@ -66,6 +66,8 @@ class TestViaSecureURL:
     @pytest.fixture
     def quantized_expiry(self, patch):
         quantized_expiry = patch("h_vialib.secure.url.quantized_expiry")
-        quantized_expiry.return_value = datetime.utcnow() + timedelta(seconds=10)
+        quantized_expiry.return_value = datetime.now(tz=timezone.utc) + timedelta(
+            seconds=10
+        )
 
         return quantized_expiry
