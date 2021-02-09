@@ -1,7 +1,9 @@
 """Helper classes for clients using Via proxying."""
 
 import re
-from urllib.parse import urlencode, urlparse
+from urllib.parse import parse_qsl, urlencode, urlparse
+
+from webob.multidict import MultiDict
 
 from h_vialib.secure import ViaSecureURL
 
@@ -23,6 +25,11 @@ class ViaDoc:  # pylint: disable=too-few-public-methods
         self._content_type = content_type
 
     @property
+    def is_html(self):
+        """Check if document is known to be a HTML."""
+        return self._content_type == "html"
+
+    @property
     def is_pdf(self):
         """Check if document is known to be a pdf."""
         return self._content_type == "pdf"
@@ -31,16 +38,17 @@ class ViaDoc:  # pylint: disable=too-few-public-methods
 class ViaClient:  # pylint: disable=too-few-public-methods
     """A small wrapper to make calling Via easier."""
 
-    def __init__(self, service_url, host_url, secret):
+    def __init__(self, secret, host_url, service_url=None, html_service_url=None):
         """Initialize a ViaClient pointing to a `via_url` via server.
 
-        ￼
-        :param service_url: location of the via server
-        :param host_url: origin of the request
-        :param secret: shared secret to sign the URL
+        :param secret: Shared secret to sign the URL
+        :param host_url: Origin of the request
+        :param service_url: Location of the via server
+        :param html_service_url: Location of the Via HTML presenter
         """
-        self._service_url = urlparse(service_url)
         self._secure_url = ViaSecureURL(secret)
+        self._service_url = urlparse(service_url) if service_url else None
+        self._html_service_url = html_service_url
 
         # Default via parameters
         self.options = {
@@ -50,21 +58,55 @@ class ViaClient:  # pylint: disable=too-few-public-methods
             "via.external_link_mode": "new-tab",
         }
 
-    def url_for(self, url, content_type=None):
-        """Generate a Via url to proxy `doc`.
+    def url_for(self, url, content_type=None, options=None):
+        """Generate a Via URL to display a given URL.
+
+        If provided, the options will be merged with default Via options.
 
         :param url: URL to proxy thru Via
-        :param content_type: content type, if known, of the document
-        :return: Full via url to proxy `url` including signature
+        :param content_type: content type, if known, of the document ("pdf"
+            or "html")
+        :param options: Any additional params to add to the URL
+        :return: Full Via URL suitable for redirecting a user to
         """
         doc = ViaDoc(url, content_type)
+
+        query = dict(self.options)
+        if options:
+            query.update(options)
+
+        if doc.is_html:
+            # Optimisation to skip routing for documents we know are HTML
+            via_url = self._url_for_html(doc.url, query)
+        else:
+            via_url = self._url_for(doc, query)
+
+        return self._secure_url.create(via_url)
+
+    def _url_for(self, doc, query):
+        if self._service_url is None:
+            raise ValueError("Cannot rewrite URLs without a service URL")
 
         # Optimisation to skip routing for documents we know are PDFs
         path = "/pdf" if doc.is_pdf else "/route"
 
-        options = {"url": doc.url}
-        options.update(self.options)
+        query["url"] = doc.url
 
-        via_url = self._service_url._replace(path=path, query=urlencode(options))
+        return self._service_url._replace(path=path, query=urlencode(query)).geturl()
 
-        return self._secure_url.create(via_url.geturl())
+    def _url_for_html(self, url, query):
+        if self._html_service_url is None:
+            raise ValueError("Cannot rewrite HTML URLs without an HTML service URL")
+
+        rewriter_url = urlparse(f"{self._html_service_url}/{url}")
+
+        # Merge our options and the params from the URL
+        query = MultiDict(query)
+
+        items = parse_qsl(rewriter_url.query)
+        for key, _ in items:
+            query.pop(key, None)
+
+        query.extend(items)
+
+        return rewriter_url._replace(query=urlencode(query)).geturl()
