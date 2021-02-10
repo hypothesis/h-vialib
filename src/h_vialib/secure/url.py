@@ -1,6 +1,8 @@
 """Routines for signing and checking URLs."""
 
 from datetime import timedelta
+from hashlib import sha256
+from hmac import compare_digest
 from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse
 
 from h_vialib.exceptions import InvalidToken
@@ -40,9 +42,8 @@ class SecureURL(SecureToken):
         if not url:
             raise ValueError("A URL is required to create a token")
 
-        url = self._strip_token(url)
+        payload["h"] = self._hash_url_v1(url)
 
-        payload["url"] = url
         token = super().create(payload, expires, max_age)
 
         return self._add_token(url, token)
@@ -58,17 +59,27 @@ class SecureURL(SecureToken):
         token = self._get_token(url)
         decoded = super().verify(token)
 
-        signed_url = decoded.get("url")
-        if not signed_url:
-            raise InvalidToken("Secure URL token contains no URL")
+        decoded_hash = decoded.get("h")
+        if not decoded_hash:
+            raise InvalidToken("Secure URL token contains no URL hash")
 
-        comparison_url = self._strip_token(url)
-        if signed_url != comparison_url:
-            raise InvalidToken(
-                f"Secure URL token path mismatch: Got '{comparison_url}' expected '{signed_url}'"
-            )
+        comparison_hash = self._hash_url_v1(url)
+        if not compare_digest(decoded_hash, comparison_hash):
+            raise InvalidToken("Secure URL hash mismatch")
+
+        # This is of no interest to anyone bar us, and removing it prevents any
+        # external code from ending up relying on any specifics of the hash
+        decoded.pop("h")
 
         return decoded
+
+    def _hash_url_v1(self, url):
+        url = self._strip_token(url)
+
+        digest = sha256()
+        digest.update(url.encode("utf-8"))
+
+        return digest.hexdigest()
 
     def _get_token(self, url):
         params = dict(parse_qsl(urlparse(url).query))
