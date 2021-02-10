@@ -61,7 +61,7 @@ class TestViaClient:
         )
 
     def test_url_for_with_html(self, client):
-        url = "http://example.com?a=1&a=2"
+        url = "http://example.com/path?a=1&a=2"
 
         final_url = client.url_for(url, "html")
 
@@ -98,6 +98,21 @@ class TestViaClient:
 
         with pytest.raises(ValueError):
             client.url_for("http://example.com", content_type)
+
+    @pytest.mark.parametrize(
+        "url,path",
+        (
+            # Note the addition of the trailing slash
+            ("http://bare.example.com", "http://bare.example.com/"),
+            # These should be left alone
+            ("http://example.com/", "http://example.com/"),
+            ("http://example.com/path", "http://example.com/path"),
+        ),
+    )
+    def test_it_fixes_html_urls_with_bare_hostnames(self, client, url, path):
+        signed_url = client.url_for(url, "html")
+
+        assert signed_url == Any.url.with_path(path)
 
     @pytest.fixture
     def client(self):

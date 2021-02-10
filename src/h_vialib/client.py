@@ -98,6 +98,11 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         if self._html_service_url is None:
             raise ValueError("Cannot rewrite HTML URLs without an HTML service URL")
 
+        # pywb is annoying. If we send a URL with a bare hostname and no path
+        # it will issue a redirect to the same URL with a trailing slash, which
+        # makes our token invalid. So we beat it to the punch
+        url = self._fix_bare_hostname(url)
+
         rewriter_url = urlparse(f"{self._html_service_url}/{url}")
 
         # Merge our options and the params from the URL
@@ -110,3 +115,13 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         query.extend(items)
 
         return rewriter_url._replace(query=urlencode(query)).geturl()
+
+    @classmethod
+    def _fix_bare_hostname(cls, url):
+        """Add a trailing slash to URLs without a path."""
+
+        parsed_url = urlparse(url)
+        if parsed_url.path:
+            return url
+
+        return parsed_url._replace(path="/").geturl()
