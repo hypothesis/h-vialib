@@ -1,3 +1,4 @@
+import hashlib
 from datetime import datetime, timedelta, timezone
 
 import pytest
@@ -5,7 +6,7 @@ from h_matchers import Any
 
 from h_vialib.exceptions import InvalidToken, MissingToken
 from h_vialib.secure import SecureToken
-from h_vialib.secure.url import SecureURL, ViaSecureURL
+from h_vialib.secure.url import HashedSecureURL, SecureURL, ViaSecureURL
 
 
 class TestSecureURL:
@@ -46,6 +47,40 @@ class TestSecureURL:
     @pytest.fixture
     def secure_url(self):
         return SecureURL("not_a_secret", "tok.sec")
+
+
+class TestHashedSecureUrl:
+    def test_round_tripping(self, secure_url_hash):
+        url = "http://example.com?a=1&tok.sec=OLD_HASH&a=2"
+
+        expires_at = datetime.now(tz=timezone.utc) + timedelta(seconds=10)
+
+        signed_url = secure_url_hash.create(url, expires=expires_at)
+        decoded = secure_url_hash.verify(signed_url, expires=expires_at)
+
+        assert signed_url == Any.url.matching(url).with_query(
+            [("a", "1"), ("a", "2"), ("tok.sec", Any.string())]
+        )
+        assert decoded == {
+            "url": "http://example.com?a=1&a=2",
+            "exp": Any.int(),
+        }
+
+    @pytest.mark.parametrize("payload", ({}, {"url": "http://different.example.com"}))
+    def test_verify_fails_with_bad_hashes(self, secure_url_hash, payload):
+        # Use the hashed payload (not the hashed token) as a broken token
+        url = (
+            "http://example.com?tok.sec="
+            + hashlib.sha256(str(payload).encode()).hexdigest()
+        )
+        with pytest.raises(InvalidToken):
+            secure_url_hash.verify(
+                url, expires=datetime.now(tz=timezone.utc) + timedelta(seconds=10)
+            )
+
+    @pytest.fixture
+    def secure_url_hash(self):
+        return HashedSecureURL("not_a_secret", "tok.sec")
 
 
 class TestViaSecureURL:
