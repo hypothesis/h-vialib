@@ -84,16 +84,17 @@ class Cookie:
 class TokenBasedCookie(Cookie):
     """A cookie which stores it's contents using a SecureToken."""
 
-    def __init__(self, name, token_provider):
+    def __init__(self, name, token_provider, secure=True):
         """Initialize the cookie.
 
         :param name: Cookie name to read and write
+        :param secure: Make a secure cookie to be used in iframes with HTTPS
         :param token_provider: Sub-class of SecureToken to use for creating
             and verifying the value
         """
         self._token_provider = token_provider
 
-        super().__init__(name)
+        super().__init__(name, secure)
 
     def create(
         self, expires=None, max_age=None, **kwargs
