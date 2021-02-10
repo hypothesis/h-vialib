@@ -1,7 +1,8 @@
 """Routines for signing and checking URLs."""
 
+from base64 import b64encode
 from datetime import timedelta
-from hashlib import sha256
+from hashlib import blake2b
 from hmac import compare_digest
 from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse
 
@@ -76,10 +77,17 @@ class SecureURL(SecureToken):
     def _hash_url_v1(self, url):
         url = self._strip_token(url)
 
-        digest = sha256()
+        # We don't use this hash for authentication, just verification, so 60
+        # bits of entropy is going to be enough to make collisions unlikely.
+        # We use blake here because we can precisely control the length.
+        # Setting this to 15 chars means we fit into 20 base64 chars, instead
+        # of tripping over and requiring padding causing 24 base64 chars.
+        # Essentially one char less of hash results in 4 chars less of base64
+        digest = blake2b(digest_size=15)
         digest.update(url.encode("utf-8"))
 
-        return digest.hexdigest()
+        # We use base64 as it saves us a ton of space
+        return b64encode(digest.digest()).decode("utf-8")
 
     def _get_token(self, url):
         params = dict(parse_qsl(urlparse(url).query))
