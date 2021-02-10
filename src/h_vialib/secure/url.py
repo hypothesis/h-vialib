@@ -13,6 +13,10 @@ from h_vialib.secure import SecureToken, quantized_expiry
 class SecureURL(SecureToken):
     """Sign and check URLs with a JWT."""
 
+    # We want to keep our tokens as skinny as possible, so we'll use a short
+    # name for the hash parameter we store inside the JWT
+    _HASH_PARAM = "h"
+
     def __init__(self, secret, token_param):
         """Initialise the SecureURL.
 
@@ -43,7 +47,7 @@ class SecureURL(SecureToken):
         if not url:
             raise ValueError("A URL is required to create a token")
 
-        payload["h"] = self._hash_url_v1(url)
+        payload[self._HASH_PARAM] = self._hash_url_v1(url)
 
         token = super().create(payload, expires, max_age)
 
@@ -60,7 +64,7 @@ class SecureURL(SecureToken):
         token = self._get_token(url)
         decoded = super().verify(token)
 
-        decoded_hash = decoded.get("h")
+        decoded_hash = decoded.get(self._HASH_PARAM)
         if not decoded_hash:
             raise InvalidToken("Secure URL token contains no URL hash")
 
