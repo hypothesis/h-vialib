@@ -10,14 +10,14 @@ from h_vialib.secure.url import SecureURL, ViaSecureURL
 
 class TestSecureURL:
     def test_round_tripping(self, secure_url):
-        url = "http://example.com?a=1&tok.sec=OLD_TOKEN&a=2"
+        url = "http://example.com/;tok.sec=OLD_TOKEN?a=1&a=2"
 
         signed_url = secure_url.create(url, {"extra": "value"}, max_age=10)
         decoded = secure_url.verify(signed_url)
 
         assert signed_url == Any.url.matching(url).with_query(
-            [("a", "1"), ("a", "2"), ("tok.sec", Any.string())]
-        )
+            [("a", "1"), ("a", "2")]
+        ).with_params(Any.string.matching("tok.sec=.*"))
         assert decoded == {
             "extra": "value",
             "exp": Any.int(),
@@ -32,10 +32,17 @@ class TestSecureURL:
         with pytest.raises(MissingToken):
             secure_url.verify("http://example.com")
 
+    def test_adding_tokens_to_urls_without_a_path(self, secure_url):
+        url = secure_url.create("http://example.com", {}, max_age=10)
+
+        # In order for there to be path params, there must be a path, so one
+        # is added
+        assert url.startswith("http://example.com/;tok.sec=")
+
     @pytest.mark.parametrize("payload", ({}, {"h": "not_a_hash_at_all"}))
     def test_verify_fails_with_bad_tokens(self, secure_url, payload):
         # Use a vanilla secret token to make a broken token
-        url = "http://example.com?tok.sec=" + SecureToken("not_a_secret").create(
+        url = "http://example.com/;tok.sec=" + SecureToken("not_a_secret").create(
             payload, max_age=10
         )
 
@@ -43,7 +50,7 @@ class TestSecureURL:
             secure_url.verify(url)
 
     def test_hashes_have_a_fixed_length(self, secure_url):
-        short_url = "http://example.com"
+        short_url = "http://example.com/"
         long_url = "http://example.com/" + ("path/" * 1000)
 
         short_secure = secure_url.create(short_url, {}, max_age=10)
@@ -62,12 +69,13 @@ class TestViaSecureURL:
     def test_round_tripping(self, quantized_expiry):
         token = ViaSecureURL("not_a_secret")
 
-        signed_url = token.create("http://example.com?via.sec=OLD_TOKEN")
+        signed_url = token.create("http://example.com/;via.sec=OLD_TOKEN")
         decoded = token.verify(signed_url)
 
-        assert signed_url == Any.url.matching(signed_url).with_query(
-            {"via.sec": Any.string()}
+        assert signed_url == Any.url.matching(signed_url).with_params(
+            Any.string.matching("via.sec=.*")
         )
+        assert "OLD_TOKEN" not in signed_url
         assert decoded == {
             "exp": int(quantized_expiry.return_value.timestamp()),
         }

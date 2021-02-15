@@ -4,7 +4,7 @@ from base64 import b64encode
 from datetime import timedelta
 from hashlib import blake2b
 from hmac import compare_digest
-from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse
+from urllib.parse import parse_qsl, urlparse
 
 from h_vialib.exceptions import InvalidToken
 from h_vialib.secure import SecureToken, quantized_expiry
@@ -47,11 +47,13 @@ class SecureURL(SecureToken):
         if not url:
             raise ValueError("A URL is required to create a token")
 
-        payload[self._HASH_PARAM] = self._hash_url_v1(url)
+        parsed_url = urlparse(url)
+
+        payload[self._HASH_PARAM] = self._hash_url_v1(parsed_url)
 
         token = super().create(payload, expires, max_age)
 
-        return self._add_token(url, token)
+        return parsed_url._replace(params=f"{self._token_param}={token}").geturl()
 
     def verify(self, url):  # pylint: disable=arguments-differ
         """Check a URL to see if it's been signed by this service.
@@ -61,14 +63,16 @@ class SecureURL(SecureToken):
 
         :raises InvalidToken: If the token is invalid or the URL does not match
         """
-        token = self._get_token(url)
+        parsed_url = urlparse(url)
+
+        token = self._get_token(parsed_url)
         decoded = super().verify(token)
 
         decoded_hash = decoded.get(self._HASH_PARAM)
         if not decoded_hash:
             raise InvalidToken("Secure URL token contains no URL hash")
 
-        comparison_hash = self._hash_url_v1(url)
+        comparison_hash = self._hash_url_v1(parsed_url)
         if not compare_digest(decoded_hash, comparison_hash):
             raise InvalidToken("Secure URL hash mismatch")
 
@@ -78,8 +82,12 @@ class SecureURL(SecureToken):
 
         return decoded
 
-    def _hash_url_v1(self, url):
-        url = self._strip_token(url)
+    @classmethod
+    def _hash_url_v1(cls, parsed_url):
+        # Strip all of the path params, including our token out. We could be
+        # more fancy if we think people are using path params, and we want to
+        # preserve them
+        url = parsed_url._replace(params="").geturl()
 
         # We don't use this hash for authentication, just verification, so 60
         # bits of entropy is going to be enough to make collisions unlikely.
@@ -93,25 +101,10 @@ class SecureURL(SecureToken):
         # We use base64 as it saves us a ton of space
         return b64encode(digest.digest()).decode("utf-8")
 
-    def _get_token(self, url):
-        params = dict(parse_qsl(urlparse(url).query))
+    def _get_token(self, parsed_url):
+        params = dict(parse_qsl(parsed_url.params))
 
         return params.get(self._token_param)
-
-    def _strip_token(self, url):
-        parsed_url = urlparse(url)
-        query = [
-            item for item in parse_qsl(parsed_url.query) if item[0] != self._token_param
-        ]
-
-        return parsed_url._replace(query=urlencode(query)).geturl()
-
-    def _add_token(self, url, token):
-        parsed_url = urlparse(url)
-        query = parse_qs(parsed_url.query)
-        query[self._token_param] = [token]
-
-        return parsed_url._replace(query=urlencode(query, doseq=True)).geturl()
 
 
 class ViaSecureURL(SecureURL):
