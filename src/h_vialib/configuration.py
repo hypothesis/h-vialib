@@ -36,37 +36,40 @@ class Configuration:
     """
 
     @classmethod
-    def extract_from_params(cls, params):
+    def extract_from_params(cls, params, add_defaults=True):
         """Extract Via and H config from query parameters.
 
         :param params: A mapping of query parameters
+        :param add_defaults: Fill out sensible default values
         :return: A tuple of Via, and H config
         """
 
         merged_params = FlatDict.unflatten(params)
-        return Params.split(merged_params)
+        return Params.split(merged_params, add_defaults)
 
     @classmethod
-    def extract_from_wsgi_environment(cls, http_env):
+    def extract_from_wsgi_environment(cls, http_env, add_defaults=True):
         """Extract Via and H config from a WSGI environment object.
 
         :param http_env: WSGI provided environment variable
+        :param add_defaults: Fill out sensible default values
         :return: A tuple of Via, and H config
         """
         params = dict(parse_qsl(http_env.get("QUERY_STRING")))
 
-        return cls.extract_from_params(params)
+        return cls.extract_from_params(params, add_defaults)
 
     @classmethod
-    def extract_from_url(cls, url):
+    def extract_from_url(cls, url, add_defaults=True):
         """Extract Via and H config from a URL.
 
         :param url: A URL to extract config from
+        :param add_defaults: Fill out sensible default values
         :return: A tuple of Via, and H config
         """
         params = dict(parse_qsl(urlparse(url).query))
 
-        return cls.extract_from_params(params)
+        return cls.extract_from_params(params, add_defaults)
 
     @classmethod
     def strip_from_url(cls, url):
