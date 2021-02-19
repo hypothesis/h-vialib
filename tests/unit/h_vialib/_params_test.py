@@ -50,6 +50,21 @@ class TestParams:
             "showHighlights": True,
         }
 
+    def test_split_without_defaults(self):
+        via_params, client_params = Params.split(
+            {
+                "via": {
+                    "any_option": 1,
+                    "client": {
+                        "focus": 2,
+                    },
+                }
+            },
+            add_defaults=False,
+        )
+        assert via_params == {"any_option": 1}
+        assert client_params == {"focus": 2}
+
     def test_join(self):
         merged = Params.join(
             via_params={
@@ -76,3 +91,10 @@ class TestParams:
                 },
             }
         }
+
+    def test_join_without_defaults(self):
+        merged = Params.join(
+            via_params={"any_option": 1}, client_params={"focus": 2}, add_defaults=False
+        )
+
+        assert merged == {"via": {"any_option": 1, "client": {"focus": 2}}}

@@ -43,41 +43,51 @@ class Params:
         return via_params, non_via_params
 
     @classmethod
-    def split(cls, merged_params):
+    def split(cls, merged_params, add_defaults=True):
         """Split merged nested Via and Client params.
 
         :param merged_params: Nested Via parameters
         :return: A tuple of Via and Client params
+        :param add_defaults: Fill out sensible default values
         """
 
         via_params = merged_params.get(cls.KEY_PREFIX, {})
         client_params = via_params.pop("client", {})
 
-        return cls._clean_params(via_params, client_params)
+        return cls._clean_params(via_params, client_params, add_defaults)
 
     @classmethod
-    def join(cls, via_params, client_params):
+    def join(cls, via_params, client_params, add_defaults=True):
         """Join Via and Client params into a single nested structure.
 
         :param via_params: Params for Via
         :param client_params: Params to pass to the client
+        :param add_defaults: Fill out sensible default values
         :return: A single nested dict of params
         """
-        via_params, client_params = cls._clean_params(via_params, client_params)
+        via_params, client_params = cls._clean_params(
+            via_params, client_params, add_defaults
+        )
 
         return {cls.KEY_PREFIX: dict(via_params, client=client_params)}
 
     @classmethod
-    def _clean_params(cls, via_params, client_params):
+    def _clean_params(cls, via_params, client_params, add_defaults=True):
         # Remove keys which are not in the whitelist
         for key in set(client_params.keys()) - cls.CLIENT_CONFIG_WHITELIST:
             client_params.pop(key)
 
         # Handle legacy params which we can't move for now
-        client_params.setdefault("openSidebar", via_params.pop("open_sidebar", False))
+        legacy_side_bar = via_params.pop("open_sidebar", None)
+        if legacy_side_bar is None and add_defaults:
+            legacy_side_bar = False
+
+        if legacy_side_bar is not None:
+            client_params.setdefault("openSidebar", legacy_side_bar)
 
         # Set some defaults
-        client_params["appType"] = "via"
-        client_params.setdefault("showHighlights", True)
+        if add_defaults:
+            client_params["appType"] = "via"
+            client_params.setdefault("showHighlights", True)
 
         return via_params, client_params
