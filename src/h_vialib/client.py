@@ -58,7 +58,7 @@ class ViaClient:  # pylint: disable=too-few-public-methods
             "via.external_link_mode": "new-tab",
         }
 
-    def url_for(self, url, content_type=None, options=None):
+    def url_for(self, url, content_type=None, options=None, blocked_for=None):
         """Generate a Via URL to display a given URL.
 
         If provided, the options will be merged with default Via options.
@@ -67,6 +67,7 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         :param content_type: content type, if known, of the document ("pdf"
             or "html")
         :param options: Any additional params to add to the URL
+        :param blocked_for: context for the blocked pages
         :return: Full Via URL suitable for redirecting a user to
         """
         doc = ViaDoc(url, content_type)
@@ -74,6 +75,9 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         query = dict(self.options)
         if options:
             query.update(options)
+
+        if blocked_for:
+            query["via.blocked_for"] = blocked_for
 
         if doc.is_html:
             # Optimisation to skip routing for documents we know are HTML

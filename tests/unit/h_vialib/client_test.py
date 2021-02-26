@@ -60,6 +60,21 @@ class TestViaClient:
             expected_query
         )
 
+    @pytest.mark.parametrize("content_type,path", ((None, "/route"), ("pdf", "/pdf")))
+    def test_url_for_with_blocked_for(self, client, content_type, path):
+        url = "http://example.com&a=1&a=2"
+
+        final_url = client.url_for(url, content_type, blocked_for="lms")
+
+        expected_query = dict(self.DEFAULT_VALUES)
+        expected_query["url"] = url
+        expected_query["via.blocked_for"] = "lms"
+        expected_query["via.sec"] = Any.string()
+
+        assert final_url == Any.url.matching(self.VIA_URL + path).with_query(
+            expected_query
+        )
+
     def test_url_for_with_html(self, client):
         url = "http://example.com/path?a=1&a=2"
 
@@ -70,6 +85,27 @@ class TestViaClient:
         expected_query.extend(
             (
                 ("via.sec", Any.string()),
+                # With ViaHTML we blend our params with the original URL's
+                ("a", "1"),
+                ("a", "2"),
+            )
+        )
+
+        assert final_url == Any.url.matching(self.VIAHTML_URL + "/" + url).with_query(
+            expected_query
+        )
+
+    def test_url_for_with_html_and_blocked_for(self, client):
+        url = "http://example.com/path?a=1&a=2"
+
+        final_url = client.url_for(url, "html", blocked_for="lms")
+
+        # Use a list instead of a dict to capture repeated values
+        expected_query = list(self.DEFAULT_VALUES.items())
+        expected_query.extend(
+            (
+                ("via.sec", Any.string()),
+                ("via.blocked_for", "lms"),
                 # With ViaHTML we blend our params with the original URL's
                 ("a", "1"),
                 ("a", "2"),
