@@ -83,9 +83,9 @@ class ViaClient:  # pylint: disable=too-few-public-methods
             # Optimisation to skip routing for documents we know are HTML
             via_url = self._url_for_html(doc.url, query)
         else:
-            via_url = self._url_for(doc, query)
+            via_url = self._secure_url.create(self._url_for(doc, query))
 
-        return self._secure_url.create(via_url)
+        return via_url
 
     def _url_for(self, doc, query):
         if self._service_url is None:
@@ -117,6 +117,9 @@ class ViaClient:  # pylint: disable=too-few-public-methods
             query.pop(key, None)
 
         query.extend(items)
+        if "via.sec" in query:
+            # Remove any already present signing parameters not needed for viahtml
+            del query["via.sec"]
 
         return rewriter_url._replace(query=urlencode(query)).geturl()
 
