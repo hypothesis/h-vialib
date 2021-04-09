@@ -38,11 +38,10 @@ class ViaDoc:  # pylint: disable=too-few-public-methods
 class ViaClient:  # pylint: disable=too-few-public-methods
     """A small wrapper to make calling Via easier."""
 
-    def __init__(self, secret, host_url, service_url=None, html_service_url=None):
+    def __init__(self, secret, service_url=None, html_service_url=None):
         """Initialize a ViaClient pointing to a `via_url` via server.
 
         :param secret: Shared secret to sign the URL
-        :param host_url: Origin of the request
         :param service_url: Location of the via server
         :param html_service_url: Location of the Via HTML presenter
         """
@@ -53,8 +52,6 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         # Default via parameters
         self.options = {
             "via.client.openSidebar": "1",
-            "via.client.requestConfigFromFrame.origin": host_url,
-            "via.client.requestConfigFromFrame.ancestorLevel": "2",
             "via.external_link_mode": "new-tab",
         }
 
