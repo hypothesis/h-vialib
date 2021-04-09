@@ -41,8 +41,6 @@ class TestViaClient:
 
     DEFAULT_VALUES = {
         "via.client.openSidebar": "1",
-        "via.client.requestConfigFromFrame.origin": ORIGIN_URL,
-        "via.client.requestConfigFromFrame.ancestorLevel": "2",
         "via.external_link_mode": "new-tab",
     }
 
@@ -126,7 +124,6 @@ class TestViaClient:
         client = ViaClient(
             service_url=None,
             html_service_url=None,
-            host_url=self.ORIGIN_URL,
             secret="not_a_secret",
         )
 
@@ -153,6 +150,5 @@ class TestViaClient:
         return ViaClient(
             service_url=self.VIA_URL,
             html_service_url=self.VIAHTML_URL,
-            host_url=self.ORIGIN_URL,
             secret="not_a_secret",
         )
