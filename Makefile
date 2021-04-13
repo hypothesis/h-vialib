@@ -9,6 +9,7 @@ help:
 	@echo "make initialrelease    Create the first release of a package"
 	@echo "make test              Run the unit tests"
 	@echo "make coverage          Print the unit test coverage report"
+	@echo "make sure              Make sure that the formatter, linter, tests, etc all pass"
 	@echo "make clean             Delete development artefacts (cached files, "
 	@echo "                       dependencies, etc)"
 	@echo "make template          Replay the cookiecutter project template over this"
@@ -45,6 +46,9 @@ test: python
 .PHONY: coverage
 coverage: python
 	@tox -qe coverage
+
+.PHONY: sure
+sure: checkformatting lint test coverage
 
 .PHONY: template
 template: python
