@@ -1,10 +1,9 @@
 """Suggest a new tag to make a release with."""
 
-from distutils.errors import DistutilsFileError
+from configparser import ConfigParser
 from subprocess import check_output
 
 from packaging import version
-from setuptools.config import read_configuration
 
 
 class VersionSuggester:
@@ -24,10 +23,10 @@ class VersionSuggester:
     @classmethod
     def major_minor_version(cls):
         """Find the major minor declared in the setup.cfg."""
-        try:
-            config = read_configuration("setup.cfg")
-        except DistutilsFileError:
-            raise FileNotFoundError("setup.cfg") from None
+
+        config = ConfigParser()
+        if not config.read("setup.cfg"):
+            raise FileNotFoundError("setup.cfg")
 
         return version.parse(config["metadata"]["version"])
 
