@@ -1,30 +1,30 @@
 import os
+from configparser import ConfigParser
 
 from setuptools import find_packages, setup
-from setuptools.config import read_configuration
 
 
 class Package:
     def __init__(self, config):
-        metadata = config['metadata']
-        options = config['options']
+        metadata = config["metadata"]
+        options = config["options"]
 
         self.options = options
-        self.name = metadata['name']
-        self.version = metadata['version']
+        self.name = metadata["name"]
+        self.version = metadata["version"]
 
     def tests_require(self):
-        return self.options['tests_require'] + self.options['install_requires']
+        return self.options["tests_require"] + self.options["install_requires"]
 
     def read_egg_version(self):
         pkg_info_file = None
         # PKG-INFO can be in different places depending on whether we are a
         # source distribution or a checked out copy etc.
         for location in [
-                'PKG-INFO',
-                'src/' + self.name + ".egg-info/PKG-INFO",
-                self.name + ".egg-info/PKG-INFO",
-            ]:
+            "PKG-INFO",
+            "src/" + self.name + ".egg-info/PKG-INFO",
+            self.name + ".egg-info/PKG-INFO",
+        ]:
             if os.path.isfile(location):
                 pkg_info_file = location
 
@@ -57,20 +57,22 @@ class Package:
         # If we have a build argument we should honour it if we can
         build = os.environ.get(build_var)
         if build:
-            if build.startswith('refs/heads/'):
+            if build.startswith("refs/heads/"):
                 # We are being built via CI from a branch: we'll return a
                 # dummy value marking this as an 'alpha' release
-                return self.version + '.a0'
+                return self.version + ".a0"
 
-            if build.startswith('refs/tags/'):
+            if build.startswith("refs/tags/"):
                 # We are being built via CI from a tag: strip the refs stuff
-                build = build.replace('refs/tags/', '')
+                build = build.replace("refs/tags/", "")
 
-            start = 'v' + self.version + '.'
+            start = "v" + self.version + "."
             if not build.startswith(start):
-                raise ValueError(f'Expected build to be "{start}*", got "{build}"')
+                raise ValueError(
+                    'Expected build to be "{}*", got "{}"'.format(start, build)
+                )
 
-            return self.version + "." + build[len(start):]
+            return self.version + "." + build[len(start) :]
 
         # If not, we should try and read it from the .egg-info/ data
 
@@ -87,21 +89,20 @@ class Package:
         return self.version + ".dev0"
 
 
-package = Package(read_configuration('setup.cfg'))
+config = ConfigParser()
+config.read("setup.cfg")
+package = Package(config)
 
 setup(
     # Metadata
     # https://docs.python.org/3/distutils/setupscript.html#additional-meta-data
     version=package.get_version(),
-
     # Contents and dependencies
-    packages=find_packages(where='src'),
-    package_dir={'': 'src'},
+    packages=find_packages(where="src"),
+    package_dir={"": "src"},
     # Read the MANIFEST.in
     include_package_data=True,
-
     # Add support for pip install .[tests]
     extras_require={"tests": package.tests_require()},
-
     tests_require=package.tests_require(),
 )

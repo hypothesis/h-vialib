@@ -14,6 +14,7 @@ load-plugins=pylint.extensions.bad_builtin,
 disable=bad-continuation,
         missing-type-doc,
         missing-return-type-doc,
+        wrong-import-order,
 
 [REPORTS]
 output-format=colorized
