@@ -6,7 +6,7 @@ Usage
 -----
 
 This is an internal library, mostly of interest to maintainers of 
-[Via](https://github.com/hypothesis/via3) and related components.
+[Via](https://github.com/hypothesis/via) and related components.
 
 Some items of interest:
 
