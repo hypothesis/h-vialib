@@ -1,0 +1,5 @@
+[tool.hdev.tox]
+# Any pip dependencies to be run before every test run (is prepended with
+# "pip install") or false if no extras are required.
+# e.g. flask=1.2.3 --no-deps
+test_extras = false
