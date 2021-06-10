@@ -40,6 +40,7 @@ class TestViaClient:
     ORIGIN_URL = "http://random.localhost"
 
     DEFAULT_VALUES = {
+        "via.client.ignoreOtherConfiguration": "1",
         "via.client.openSidebar": "1",
         "via.external_link_mode": "new-tab",
     }

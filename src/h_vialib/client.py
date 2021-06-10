@@ -51,6 +51,7 @@ class ViaClient:  # pylint: disable=too-few-public-methods
 
         # Default via parameters
         self.options = {
+            "via.client.ignoreOtherConfiguration": "1",
             "via.client.openSidebar": "1",
             "via.external_link_mode": "new-tab",
         }
