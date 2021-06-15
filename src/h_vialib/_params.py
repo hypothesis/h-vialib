@@ -10,6 +10,7 @@ class Params:
     # From: https://h.readthedocs.io/projects/client/en/latest/publishers/config/#config-settings
     CLIENT_CONFIG_WHITELIST = {
         # Things we use now
+        "ignoreOtherConfiguration",
         "openSidebar",
         "requestConfigFromFrame",
         # Things which seem safe
