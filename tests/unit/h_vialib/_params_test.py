@@ -32,6 +32,7 @@ class TestParams:
                     # This should get moved to client params
                     "open_sidebar": True,
                     "client": {
+                        "ignoreOtherConfiguration": "allowed",
                         "focus": "allowed",
                         "random": "blocked",
                         "requestConfigFromFrame": {"anyNestedStuff": "allowed"},
@@ -43,6 +44,7 @@ class TestParams:
         assert via_params == {"any_option": 1}
         assert client_params == {
             "openSidebar": True,
+            "ignoreOtherConfiguration": "allowed",
             "focus": "allowed",
             "requestConfigFromFrame": {"anyNestedStuff": "allowed"},
             # Defaults
@@ -72,6 +74,7 @@ class TestParams:
                 "open_sidebar": True,
             },
             client_params={
+                "ignoreOtherConfiguration": "allowed",
                 "focus": "allowed",
                 "random": "blocked",
                 "requestConfigFromFrame": {"anyNestedStuff": "allowed"},
@@ -83,6 +86,7 @@ class TestParams:
                 "any_option": 1,
                 "client": {
                     "openSidebar": True,
+                    "ignoreOtherConfiguration": "allowed",
                     "focus": "allowed",
                     "requestConfigFromFrame": {"anyNestedStuff": "allowed"},
                     # Defaults
