@@ -53,7 +53,7 @@ class SecureURL(SecureToken):
 
         return self._add_token(url, token)
 
-    def verify(self, url):  # pylint: disable=arguments-differ
+    def verify(self, url):  # pylint: disable=arguments-renamed
         """Check a URL to see if it's been signed by this service.
 
         :param url: URL to check
