@@ -122,10 +122,16 @@ class ViaSecureURL(SecureURL):
     def __init__(self, secret):
         super().__init__(secret, token_param="via.sec")
 
-    def create(self, url):  # pylint: disable=arguments-differ
+    def create(self, url, max_age=None):  # pylint: disable=arguments-differ
         """Create a secure token for a Via proxied URL.
 
         :param url: The whole URL of the request to Via with all params
+        :param max_age: The time after which the secure token will expire
+            (optional, default: one hour)
+        :type max_age: datetime.timedelta
         :return: A JWT encoded token as a string
         """
-        return super().create(url, payload={}, expires=quantized_expiry(self.MAX_AGE))
+        if max_age is None:
+            max_age = self.MAX_AGE
+
+        return super().create(url, payload={}, expires=quantized_expiry(max_age))
