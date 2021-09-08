@@ -59,15 +59,25 @@ class TestSecureURL:
 
 
 class TestViaSecureURL:
-    def test_round_tripping(self, quantized_expiry):
+    @pytest.mark.parametrize(
+        "given_max_age,expected_max_age",
+        [
+            # The default expiry time is one hour.
+            (None, timedelta(hours=1)),
+            # If a custom expiry time is given it will be used instead.
+            (timedelta(hours=25), timedelta(hours=25)),
+        ],
+    )
+    def test_round_tripping(self, quantized_expiry, given_max_age, expected_max_age):
         token = ViaSecureURL("not_a_secret")
 
-        signed_url = token.create("http://example.com?via.sec=OLD_TOKEN")
+        signed_url = token.create("http://example.com?via.sec=OLD_TOKEN", given_max_age)
         decoded = token.verify(signed_url)
 
         assert signed_url == Any.url.matching(signed_url).with_query(
             {"via.sec": Any.string()}
         )
+        quantized_expiry.assert_called_once_with(expected_max_age)
         assert decoded == {
             "exp": int(quantized_expiry.return_value.timestamp()),
         }
