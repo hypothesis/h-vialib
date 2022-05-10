@@ -14,6 +14,7 @@ class Params:
         "openSidebar",
         "requestConfigFromFrame",
         # Things which seem safe
+        "contentPartner",
         "enableExperimentalNewNoteButton",
         "experimental",  # Nested value for experimental features
         "externalContainerSelector",
