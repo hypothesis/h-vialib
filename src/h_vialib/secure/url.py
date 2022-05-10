@@ -28,7 +28,7 @@ class SecureURL(SecureToken):
 
     def create(
         self, url, payload, expires=None, max_age=None
-    ):  # pylint: disable=arguments-differ
+    ):  # pylint: disable=arguments-renamed
         """Create a signed URL which can be checked with this class.
 
         The entire URL should be added that you want to sign, without any
