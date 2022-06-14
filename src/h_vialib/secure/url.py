@@ -7,7 +7,8 @@ from hmac import compare_digest
 from urllib.parse import parse_qs, parse_qsl, urlencode, urlparse
 
 from h_vialib.exceptions import InvalidToken
-from h_vialib.secure import SecureToken, quantized_expiry
+from h_vialib.secure.expiry import quantized_expiry
+from h_vialib.secure.token import SecureToken
 
 
 class SecureURL(SecureToken):
