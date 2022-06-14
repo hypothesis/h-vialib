@@ -10,5 +10,6 @@
             "src/h_vialib/__init__.py"
         ]
     },
-    "_template": "gh:hypothesis/h-cookiecutter-pypackage"
+    "_template": "gh:hypothesis/h-cookiecutter-pypackage",
+    "_output_dir": "/tmp/tmp4d9mg9df"
 }
