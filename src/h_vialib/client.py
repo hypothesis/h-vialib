@@ -8,7 +8,7 @@ from webob.multidict import MultiDict
 from h_vialib.secure import ViaSecureURL
 
 
-class ViaDoc:  # pylint: disable=too-few-public-methods
+class ViaDoc:
     """A doc we want to proxy with content type."""
 
     _GOOGLE_DRIVE_REGEX = re.compile(

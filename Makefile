@@ -1,57 +1,80 @@
+comma := ,
+
 .PHONY: help
-help:
-	@echo "make help              Show this help message"
-	@echo "make lint              Code quality analysis (pylint)"
-	@echo "make format            Correctly format the code"
-	@echo "make checkformatting   Crash if the code isn't correctly formatted"
-	@echo "make dist              Create package in the dist/ directory for local testing"
-	@echo "make release           Tag a release and trigger deployment to PyPI"
-	@echo "make initialrelease    Create the first release of a package"
-	@echo "make test              Run the unit tests"
-	@echo "make testall           Run the unit tests against all versions of Python"
-	@echo "make sure              Make sure that the formatter, linter, tests, etc all pass"
-	@echo "make coverage          Print the unit test coverage report"
+help = help::; @echo $$$$(tput bold)$(strip $(1)):$$$$(tput sgr0) $(strip $(2))
+$(call help,make help,print this help message)
+
+.PHONY: services
+
+.PHONY: devdata
+
+.PHONY: shell
+$(call help,make shell,"launch a Python shell in this project's virtualenv")
+shell: python
+	@pyenv exec tox -qe dev
 
 .PHONY: lint
+$(call help,make lint,"lint the code and print any warnings")
 lint: python
-	@tox -qe lint
+	@pyenv exec tox -qe lint
 
 .PHONY: format
+$(call help,make format,"format the code")
 format: python
-	@tox -qe format
+	@pyenv exec tox -qe format
 
 .PHONY: checkformatting
+$(call help,make checkformatting,"crash if the code isn't correctly formatted")
 checkformatting: python
-	@tox -qe checkformatting
-
-.PHONY: dist
-dist: python
-	@BUILD=$(BUILD) tox -qe dist
-
-.PHONY: release
-release: python
-	@tox -qe release
-
-.PHONY: initialrelease
-initialrelease: python
-	@tox -qe initialrelease
+	@pyenv exec tox -qe checkformatting
 
 .PHONY: test
+$(call help,make test,"run the unit tests in Python 3.9")
+coverage: test
 test: python
-	@tox -qe `hdev python_version --style tox --first`-tests
+	@pyenv exec tox -qe tests
 
-.PHONY: testall
-testall: python
-	@tox -qe \{`hdev python_version --style tox --include-future`\}-tests
-
-.PHONY: sure
-sure: checkformatting lint test coverage
+.PHONY: test-py38
+$(call help,make test-py38,"run the unit tests in Python 3.8")
+coverage: test-py38
+test-py38: python
+	@pyenv exec tox -qe py38-tests
 
 .PHONY: coverage
+$(call help,make coverage,"run the tests and print the coverage report")
 coverage: python
-	@tox -qe coverage
+	@pyenv exec tox -qe coverage
+
+.PHONY: functests
+$(call help,make functests,"run the functional tests in Python 3.9")
+functests: python
+	@pyenv exec tox -qe functests
+
+.PHONY: functests-py38
+$(call help,make functests-py38,"run the functional tests in Python 3.8")
+functests-py38: python
+	@pyenv exec tox -qe py38-functests
+
+.PHONY: sure
+$(call help,make sure,"make sure that the formatting$(comma) linting and tests all pass")
+sure: python
+sure:
+	@pyenv exec tox --parallel -qe 'checkformatting,lint,tests,py{38}-tests,coverage,functests,py{38}-functests'
+
+.PHONY: template
+$(call help,make template,"update from the latest cookiecutter template")
+template: python
+	@pyenv exec tox -e template -- $$(if [ -n "$${template+x}" ]; then echo "--template $$template"; fi) $$(if [ -n "$${checkout+x}" ]; then echo "--checkout $$checkout"; fi) $$(if [ -n "$${directory+x}" ]; then echo "--directory $$directory"; fi)
+
+.PHONY: clean
+$(call help,make clean,"delete temporary files etc")
+clean:
+	@rm -rf build dist .tox
+	@find . -path '*/__pycache__*' -delete
+	@find . -path '*.egg-info*' -delete
 
 .PHONY: python
 python:
-	@# Ensure we can run even if the local pyenv versions are not installed
-	@PYENV_VERSION=system hdev install-python;
+	@bin/make_python
+
+-include h_vialib.mk

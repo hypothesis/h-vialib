@@ -1,0 +1,23 @@
+{
+  "template": "https://github.com/hypothesis/cookiecutters",
+  "checkout": null,
+  "directory": "pypackage",
+  "ignore": ["src/h_vialib/core.py", "tests/unit/h_vialib/core_test.py"],
+  "extra_context": {
+    "name": "h-vialib",
+    "package_name": "h_vialib",
+    "slug": "h-vialib",
+    "short_description": "Library functions for use with Via.",
+    "python_versions": "3.9.4,3.8.9",
+    "github_owner": "hypothesis",
+    "copyright_holder": "Hypothesis",
+    "visibility": "public",
+    "console_script": "no",
+    "devdata": "no",
+    "services": "no",
+    "dependabot_pip_interval": "monthly",
+    "__entry_point": "h-vialib",
+    "__github_url": "https://github.com/hypothesis/h-vialib",
+    "__pypi_url": "https://pypi.org/project/h-vialib"
+  }
+}
