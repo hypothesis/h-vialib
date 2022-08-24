@@ -14,7 +14,7 @@ class TestQuantizedExpiry:
 
         assert isinstance(expires, _datetime)
         diff = expires - YEAR_ZERO
-        assert diff.total_seconds() % (99 / 3) == 0
+        assert not diff.total_seconds() % (99 / 3)
 
     def test_it_is_in_the_range_we_expect(self):
         now = _datetime.now(tz=timezone.utc)
