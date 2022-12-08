@@ -38,7 +38,7 @@ Then to set up your development environment:
 
 ```terminal
 git clone https://github.com/hypothesis/h-vialib.git
-cd h_vialib
+cd h-vialib
 make help
 ```
 
