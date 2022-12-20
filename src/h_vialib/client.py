@@ -5,7 +5,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse
 
 from webob.multidict import MultiDict
 
-from h_vialib.secure import ViaSecureURL
+from h_vialib.secure import SecureSecrets, ViaSecureURL
 
 
 class ViaDoc:
@@ -45,6 +45,7 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         :param service_url: Location of the via server
         :param html_service_url: Location of the Via HTML presenter
         """
+        self._secure_secrets = SecureSecrets(secret.encode("utf-8"))
         self._secure_url = ViaSecureURL(secret)
         self._service_url = urlparse(service_url) if service_url else None
         self._html_service_url = html_service_url
@@ -56,7 +57,10 @@ class ViaClient:  # pylint: disable=too-few-public-methods
             "via.external_link_mode": "new-tab",
         }
 
-    def url_for(self, url, content_type=None, options=None, blocked_for=None):
+    # pylint:disable=too-many-arguments
+    def url_for(
+        self, url, content_type=None, options=None, blocked_for=None, headers=None
+    ):
         """Generate a Via URL to display a given URL.
 
         If provided, the options will be merged with default Via options.
@@ -66,6 +70,10 @@ class ViaClient:  # pylint: disable=too-few-public-methods
             or "html")
         :param options: Any additional params to add to the URL
         :param blocked_for: context for the blocked pages
+        :param headers: Any headers needed to make the request to `url`.
+            The headers are sent encrypted to Via.
+            Note that the headers are only used when the content is proxied with
+            python, ie only PDFs from certain sources.
         :return: Full Via URL suitable for redirecting a user to
         """
         doc = ViaDoc(url, content_type)
@@ -73,6 +81,9 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         query = dict(self.options)
         if options:
             query.update(options)
+
+        if headers:
+            query["via.secret.headers"] = self._secure_secrets.encrypt_dict(headers)
 
         if blocked_for:
             query["via.blocked_for"] = blocked_for
