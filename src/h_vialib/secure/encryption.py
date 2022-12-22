@@ -7,7 +7,7 @@ from Cryptodome.Cipher import AES
 from Cryptodome.Util.Padding import pad
 
 
-class SecureSecrets:
+class Encryption:
     def __init__(self, secret: bytes):
         self._secret = pad(secret, 16)
 

@@ -5,7 +5,7 @@ from urllib.parse import parse_qsl, urlencode, urlparse
 
 from webob.multidict import MultiDict
 
-from h_vialib.secure import SecureSecrets, ViaSecureURL
+from h_vialib.secure import Encryption, ViaSecureURL
 
 
 class ViaDoc:
@@ -45,7 +45,7 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         :param service_url: Location of the via server
         :param html_service_url: Location of the Via HTML presenter
         """
-        self._secure_secrets = SecureSecrets(secret.encode("utf-8"))
+        self._secure_secrets = Encryption(secret.encode("utf-8"))
         self._secure_url = ViaSecureURL(secret)
         self._service_url = urlparse(service_url) if service_url else None
         self._html_service_url = html_service_url
