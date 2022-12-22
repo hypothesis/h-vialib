@@ -1,7 +1,7 @@
 """JWT based tokens which can be used to create verifiable, expiring tokens."""
 
-import jwt
-from jwt import DecodeError, ExpiredSignatureError, InvalidSignatureError
+from jose import jwt
+from jose.exceptions import ExpiredSignatureError, JWTError
 
 from h_vialib.exceptions import InvalidToken, MissingToken
 from h_vialib.secure.expiry import as_expires
@@ -47,9 +47,7 @@ class SecureToken:
 
         try:
             return jwt.decode(token, self._secret, self.TOKEN_ALGORITHM)
-        except InvalidSignatureError as err:
-            raise InvalidToken("Invalid secure token") from err
         except ExpiredSignatureError as err:
             raise InvalidToken("Expired secure token") from err
-        except DecodeError as err:
-            raise InvalidToken("Malformed secure token") from err
+        except JWTError as err:
+            raise InvalidToken("Invalid secure token") from err
