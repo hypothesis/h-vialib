@@ -2,21 +2,21 @@ import pytest
 from Cryptodome.Random import get_random_bytes
 from Cryptodome.Util.Padding import pad
 
-from h_vialib.secure import SecureSecrets
+from h_vialib.secure import Encryption
 
 
-class TestSecureSecrets:
-    def test_encrypt_dict_round_trip(self, secure_secrets):
+class TestEncryption:
+    def test_encrypt_dict_round_trip(self, encryption):
         payload_dict = {"some": "data"}
 
-        encrypted = secure_secrets.encrypt_dict(payload_dict)
+        encrypted = encryption.encrypt_dict(payload_dict)
 
-        assert secure_secrets.decrypt_dict(encrypted) == payload_dict
+        assert encryption.decrypt_dict(encrypted) == payload_dict
 
-    def test_encrypt_dict(self, secure_secrets, secret, AES, Random, base64, json):
+    def test_encrypt_dict(self, encryption, secret, AES, Random, base64, json):
         payload_dict = {"some": "data"}
 
-        encrypted = secure_secrets.encrypt_dict(payload_dict)
+        encrypted = encryption.encrypt_dict(payload_dict)
 
         Random.new.return_value.read.assert_called_once_with(AES.block_size)
         AES.new.assert_called_once_with(
@@ -34,8 +34,8 @@ class TestSecureSecrets:
         )
         assert encrypted == json.dumps.return_value
 
-    def test_decrypt_dict(self, secure_secrets, secret, AES, base64, json):
-        plain_text_dict = secure_secrets.decrypt_dict("payload")
+    def test_decrypt_dict(self, encryption, secret, AES, base64, json):
+        plain_text_dict = encryption.decrypt_dict("payload")
 
         AES.new.assert_called_once_with(
             pad(secret, 16), AES.MODE_CFB, base64.urlsafe_b64decode.return_value
@@ -50,21 +50,21 @@ class TestSecureSecrets:
         return get_random_bytes(12)
 
     @pytest.fixture
-    def secure_secrets(self, secret):
-        return SecureSecrets(secret)
+    def encryption(self, secret):
+        return Encryption(secret)
 
     @pytest.fixture
     def AES(self, patch):
-        return patch("h_vialib.secure.secrets.AES")
+        return patch("h_vialib.secure.encryption.AES")
 
     @pytest.fixture
     def Random(self, patch):
-        return patch("h_vialib.secure.secrets.Random")
+        return patch("h_vialib.secure.encryption.Random")
 
     @pytest.fixture
     def base64(self, patch):
-        return patch("h_vialib.secure.secrets.base64")
+        return patch("h_vialib.secure.encryption.base64")
 
     @pytest.fixture
     def json(self, patch):
-        return patch("h_vialib.secure.secrets.json")
+        return patch("h_vialib.secure.encryption.json")

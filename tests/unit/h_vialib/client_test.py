@@ -120,13 +120,13 @@ class TestViaClient:
 
         assert final_url == Any.url.containing_query(override)
 
-    def test_url_for_with_headers(self, client, SecureSecrets):
+    def test_url_for_with_headers(self, client, Encryption):
         headers = {"some": "header"}
-        SecureSecrets.return_value.encrypt_dict.return_value = "secure headers"
+        Encryption.return_value.encrypt_dict.return_value = "secure headers"
 
         final_url = client.url_for("http://example.com", headers=headers)
 
-        SecureSecrets.return_value.encrypt_dict.assert_called_once_with(headers)
+        Encryption.return_value.encrypt_dict.assert_called_once_with(headers)
         assert final_url == Any.url.containing_query(
             {"via.secret.headers": "secure headers"}
         )
@@ -158,11 +158,11 @@ class TestViaClient:
         assert signed_url == Any.url.with_path(path)
 
     @pytest.fixture
-    def SecureSecrets(self, patch):
-        return patch("h_vialib.client.SecureSecrets")
+    def Encryption(self, patch):
+        return patch("h_vialib.client.Encryption")
 
     @pytest.fixture
-    def client(self, SecureSecrets):  # pylint:disable=unused-argument
+    def client(self, Encryption):  # pylint:disable=unused-argument
         return ViaClient(
             service_url=self.VIA_URL,
             html_service_url=self.VIAHTML_URL,
