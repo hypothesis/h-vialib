@@ -1,49 +1,26 @@
-import base64
 import json
-from typing import Tuple
 
-from Cryptodome import Random
-from Cryptodome.Cipher import AES
-from Cryptodome.Util.Padding import pad
+from jose import constants, jwe
 
 
 class Encryption:
+    JWE_ALGORITHM = constants.ALGORITHMS.DIR
+    JWE_ENCRYPTION = constants.ALGORITHMS.A128CBC_HS256
+
     def __init__(self, secret: bytes):
-        self._secret = pad(secret, 16)
+        self._secret = secret.ljust(32)[:32]
 
     def encrypt_dict(self, payload: dict) -> str:
-        """
-        Encrypt a dictionary using AES.
+        """Encrypt a dictionary as a JWE."""
 
-        The returned string is a json encoded dictionary containing both the AES IV
-        and the cipher text.
-        """
-        dict_json = json.dumps(payload).encode("utf-8")
-        aes_iv, encrypted_json = self._encrypt(dict_json)
-
-        return json.dumps(
-            {
-                "iv": base64.urlsafe_b64encode(aes_iv).decode("utf-8"),
-                "payload": base64.urlsafe_b64encode(encrypted_json).decode("utf-8"),
-            }
-        )
+        return jwe.encrypt(
+            json.dumps(payload),
+            self._secret,
+            algorithm=self.JWE_ALGORITHM,
+            encryption=self.JWE_ENCRYPTION,
+        ).decode("utf-8")
 
     def decrypt_dict(self, payload: str) -> dict:
-        """Decypts payloads created by `encrypt_dict`."""
-        payload_dict = json.loads(payload)
+        """Decrypts payloads created by `encrypt_dict`."""
 
-        aes_iv = payload_dict.get("iv", "")
-        cipher = payload_dict.get("payload", "")
-
-        aes_iv = base64.urlsafe_b64decode(aes_iv)
-        cipher = base64.urlsafe_b64decode(cipher)
-
-        return json.loads(self._decrypt(aes_iv, cipher))
-
-    def _decrypt(self, aes_iv, encrypted) -> bytes:
-        cipher = AES.new(self._secret, AES.MODE_CFB, aes_iv)
-        return cipher.decrypt(encrypted)
-
-    def _encrypt(self, plain_text: bytes) -> Tuple[bytes, bytes]:
-        aes_iv = Random.new().read(AES.block_size)
-        return (aes_iv, AES.new(self._secret, AES.MODE_CFB, aes_iv).encrypt(plain_text))
+        return json.loads(jwe.decrypt(payload, self._secret))
