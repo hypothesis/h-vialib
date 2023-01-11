@@ -2,7 +2,10 @@
   "template": "https://github.com/hypothesis/cookiecutters",
   "checkout": null,
   "directory": "pypackage",
-  "ignore": ["src/h_vialib/core.py", "tests/unit/h_vialib/core_test.py"],
+  "ignore": [
+    "src/h_vialib/core.py",
+    "tests/unit/h_vialib/core_test.py"
+  ],
   "extra_context": {
     "name": "h-vialib",
     "package_name": "h_vialib",
@@ -18,6 +21,7 @@
     "dependabot_pip_interval": "monthly",
     "__entry_point": "h-vialib",
     "__github_url": "https://github.com/hypothesis/h-vialib",
-    "__pypi_url": "https://pypi.org/project/h-vialib"
+    "__pypi_url": "https://pypi.org/project/h-vialib",
+    "__copyright_year": "2022"
   }
 }
