@@ -22,6 +22,7 @@
     "__entry_point": "h-vialib",
     "__github_url": "https://github.com/hypothesis/h-vialib",
     "__pypi_url": "https://pypi.org/project/h-vialib",
-    "__copyright_year": "2022"
+    "__copyright_year": "2022",
+    "pypi": "yes"
   }
 }
