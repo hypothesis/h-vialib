@@ -1,4 +1,4 @@
-<a href="https://github.com/hypothesis/h-vialib/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://img.shields.io/github/workflow/status/hypothesis/h-vialib/CI/main"></a>
+<a href="https://github.com/hypothesis/h-vialib/actions/workflows/ci.yml?query=branch%3Amain"><img src="https://img.shields.io/github/actions/workflow/status/hypothesis/h-vialib/ci.yml?branch=main"></a>
 <a href="https://pypi.org/project/h-vialib"><img src="https://img.shields.io/pypi/v/h-vialib"></a>
 <a><img src="https://img.shields.io/badge/python-3.9 | 3.8-success"></a>
 <a href="https://github.com/hypothesis/h-vialib/blob/main/LICENSE"><img src="https://img.shields.io/badge/license-BSD--2--Clause-success"></a>
