@@ -101,7 +101,11 @@ class ViaClient:  # pylint: disable=too-few-public-methods
             raise ValueError("Cannot rewrite URLs without a service URL")
 
         # Optimisation to skip routing for documents we know are PDFs
-        path = "/pdf" if doc.is_pdf else "/route"
+        path = "/route"
+        if doc.is_pdf:
+            path = "/pdf"
+        elif doc._content_type == "video":
+            path = "/video"
 
         query["url"] = doc.url
 
