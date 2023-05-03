@@ -13,6 +13,7 @@ from h_vialib.secure import Encryption, ViaSecureURL
 class ContentType(str, Enum):
     PDF = "pdf"
     HTML = "html"
+    VIDEO = "video"
 
 
 class ViaDoc:
@@ -102,8 +103,12 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         if self._service_url is None:
             raise ValueError("Cannot rewrite URLs without a service URL")
 
-        # Optimisation to skip routing for documents we know are PDFs
-        path = "/pdf" if doc.content_type == ContentType.PDF else "/route"
+        # Optimisation to skip routing for documents we know the type of
+        content_type_paths = {
+            ContentType.PDF: "/pdf",
+            ContentType.VIDEO: "/video",
+        }
+        path = content_type_paths.get(doc.content_type, "/route")
 
         query["url"] = doc.url
 
