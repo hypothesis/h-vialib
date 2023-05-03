@@ -1,11 +1,18 @@
 """Helper classes for clients using Via proxying."""
 
 import re
+from enum import Enum
+from typing import Optional
 from urllib.parse import parse_qsl, urlencode, urlparse
 
 from webob.multidict import MultiDict
 
 from h_vialib.secure import Encryption, ViaSecureURL
+
+
+class ContentType(str, Enum):
+    PDF = "pdf"
+    HTML = "html"
 
 
 class ViaDoc:
@@ -20,19 +27,9 @@ class ViaDoc:
         self.url = url
 
         if content_type is None and self._GOOGLE_DRIVE_REGEX.match(url):
-            content_type = "pdf"
+            content_type = ContentType.PDF
 
-        self._content_type = content_type
-
-    @property
-    def is_html(self):
-        """Check if document is known to be a HTML."""
-        return self._content_type == "html"
-
-    @property
-    def is_pdf(self):
-        """Check if document is known to be a pdf."""
-        return self._content_type == "pdf"
+        self.content_type = content_type
 
 
 class ViaClient:  # pylint: disable=too-few-public-methods
@@ -59,7 +56,12 @@ class ViaClient:  # pylint: disable=too-few-public-methods
 
     # pylint:disable=too-many-arguments
     def url_for(
-        self, url, content_type=None, options=None, blocked_for=None, headers=None
+        self,
+        url,
+        content_type: Optional[ContentType] = None,
+        options=None,
+        blocked_for=None,
+        headers=None,
     ):
         """Generate a Via URL to display a given URL.
 
@@ -88,7 +90,7 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         if blocked_for:
             query["via.blocked_for"] = blocked_for
 
-        if doc.is_html:
+        if doc.content_type == ContentType.HTML:
             # Optimisation to skip routing for documents we know are HTML
             via_url = self._url_for_html(doc.url, query)
         else:
@@ -101,7 +103,7 @@ class ViaClient:  # pylint: disable=too-few-public-methods
             raise ValueError("Cannot rewrite URLs without a service URL")
 
         # Optimisation to skip routing for documents we know are PDFs
-        path = "/pdf" if doc.is_pdf else "/route"
+        path = "/pdf" if doc.content_type == ContentType.PDF else "/route"
 
         query["url"] = doc.url
 

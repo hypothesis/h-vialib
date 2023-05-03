@@ -1,37 +1,24 @@
 import pytest
 from h_matchers import Any
 
-from h_vialib import ViaClient, ViaDoc
+from h_vialib import ContentType, ViaClient, ViaDoc
 
 
 class TestViaDoc:
     @pytest.mark.parametrize(
-        "url,content_type,is_pdf",
+        "url,content_type,expected_content_type",
         (
-            ("http://example.com", None, False),
-            ("http://example.com", "html", False),
-            ("http://example.com", "pdf", True),
+            ("http://example.com", None, None),
+            ("http://example.com", ContentType.HTML, ContentType.HTML),
+            ("http://example.com", ContentType.PDF, ContentType.PDF),
             # We know about Google Drive links and assume them to be PDF
-            ("https://drive.google.com/uc?id=0&export=download", None, True),
+            ("https://drive.google.com/uc?id=0&export=download", None, ContentType.PDF),
         ),
     )
-    def test_is_pdf(self, url, content_type, is_pdf):
+    def test_content_type(self, url, content_type, expected_content_type):
         doc = ViaDoc(url, content_type)
 
-        assert doc.is_pdf == is_pdf
-
-    @pytest.mark.parametrize(
-        "url,content_type,is_html",
-        (
-            ("http://example.com", None, False),
-            ("http://example.com", "pdf", False),
-            ("http://example.com", "html", True),
-        ),
-    )
-    def test_is_htmlf(self, url, content_type, is_html):
-        doc = ViaDoc(url, content_type)
-
-        assert doc.is_html == is_html
+        assert doc.content_type == expected_content_type
 
 
 class TestViaClient:
