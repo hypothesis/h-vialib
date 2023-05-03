@@ -32,7 +32,9 @@ class TestViaClient:
         "via.external_link_mode": "new-tab",
     }
 
-    @pytest.mark.parametrize("content_type,path", ((None, "/route"), ("pdf", "/pdf")))
+    @pytest.mark.parametrize(
+        "content_type,path", ((None, "/route"), ("pdf", "/pdf"), ("video", "/video"))
+    )
     def test_url_for(self, client, content_type, path):
         url = "http://example.com&a=1&a=2"
 
