@@ -13,7 +13,7 @@ from h_vialib.secure import Encryption, ViaSecureURL
 class ContentType(str, Enum):
     PDF = "pdf"
     HTML = "html"
-    VIDEO = "video"
+    YOUTUBE = "youtube"
 
 
 class ViaDoc:
@@ -106,7 +106,7 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         # Optimisation to skip routing for documents we know the type of
         content_type_paths = {
             ContentType.PDF: "/pdf",
-            ContentType.VIDEO: "/video",
+            ContentType.YOUTUBE: "/video/youtube",
         }
         path = content_type_paths.get(doc.content_type, "/route")
 
