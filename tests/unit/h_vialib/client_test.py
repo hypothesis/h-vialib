@@ -33,7 +33,12 @@ class TestViaClient:
     }
 
     @pytest.mark.parametrize(
-        "content_type,path", ((None, "/route"), ("pdf", "/pdf"), ("video", "/video"))
+        "content_type,path",
+        (
+            (None, "/route"),
+            (ContentType.PDF, "/pdf"),
+            (ContentType.YOUTUBE, "/video/youtube"),
+        ),
     )
     def test_url_for(self, client, content_type, path):
         url = "http://example.com&a=1&a=2"
