@@ -125,6 +125,17 @@ class TestViaClient:
             {"via.secret.headers": "secure headers"}
         )
 
+    def test_url_for_with_query(self, client, Encryption):
+        query = {"some": "parameter"}
+        Encryption.return_value.encrypt_dict.return_value = "secure query"
+
+        final_url = client.url_for("http://example.com", query=query)
+
+        Encryption.return_value.encrypt_dict.assert_called_once_with(query)
+        assert final_url == Any.url.containing_query(
+            {"via.secret.query": "secure query"}
+        )
+
     @pytest.mark.parametrize("content_type", (None, "pdf", "html"))
     def test_url_for_raises_without_a_service_url(self, content_type):
         client = ViaClient(

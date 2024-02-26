@@ -62,6 +62,7 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         content_type: Optional[ContentType] = None,
         options=None,
         blocked_for=None,
+        query=None,
         headers=None,
     ):
         """Generate a Via URL to display a given URL.
@@ -73,6 +74,10 @@ class ViaClient:  # pylint: disable=too-few-public-methods
             or "html")
         :param options: Any additional params to add to the URL
         :param blocked_for: context for the blocked pages
+        :param query: Any extra query params needed to make the request to `url`.
+            These are sent encrypted to Via.
+            Note that the headers are only used when the content is proxied with
+            python, ie only PDFs from certain sources.
         :param headers: Any headers needed to make the request to `url`.
             The headers are sent encrypted to Via.
             Note that the headers are only used when the content is proxied with
@@ -81,21 +86,24 @@ class ViaClient:  # pylint: disable=too-few-public-methods
         """
         doc = ViaDoc(url, content_type)
 
-        query = dict(self.options)
+        params = dict(self.options)
         if options:
-            query.update(options)
+            params.update(options)
+
+        if query:
+            params["via.secret.query"] = self._secure_secrets.encrypt_dict(query)
 
         if headers:
-            query["via.secret.headers"] = self._secure_secrets.encrypt_dict(headers)
+            params["via.secret.headers"] = self._secure_secrets.encrypt_dict(headers)
 
         if blocked_for:
-            query["via.blocked_for"] = blocked_for
+            params["via.blocked_for"] = blocked_for
 
         if doc.content_type == ContentType.HTML:
             # Optimisation to skip routing for documents we know are HTML
-            via_url = self._url_for_html(doc.url, query)
+            via_url = self._url_for_html(doc.url, params)
         else:
-            via_url = self._secure_url.create(self._url_for(doc, query))
+            via_url = self._secure_url.create(self._url_for(doc, params))
 
         return via_url
 
