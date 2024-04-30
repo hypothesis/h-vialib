@@ -1,7 +1,7 @@
 """JWT based tokens which can be used to create verifiable, expiring tokens."""
 
-from jose import jwt
-from jose.exceptions import ExpiredSignatureError, JWTError
+from joserfc import jwt
+from joserfc.errors import JoseError
 
 from h_vialib.exceptions import InvalidToken, MissingToken
 from h_vialib.secure.expiry import as_expires
@@ -19,7 +19,7 @@ class SecureToken:
         """
         self._secret = secret
 
-    def create(self, payload=None, expires=None, max_age=None):
+    def create(self, payload=None, expires=None, max_age=None) -> str:
         """Create a secure token.
 
         :param payload: Dict of information to put in the token
@@ -29,11 +29,10 @@ class SecureToken:
 
         :raise ValueError: if neither expires nor max_age is specified
         """
-        payload["exp"] = as_expires(expires, max_age)
+        payload["exp"] = int(as_expires(expires, max_age).timestamp())
+        return jwt.encode({"alg": self.TOKEN_ALGORITHM}, payload, self._secret)
 
-        return jwt.encode(payload, self._secret, self.TOKEN_ALGORITHM)
-
-    def verify(self, token):
+    def verify(self, token: str) -> dict:
         """Decode a token and check for validity.
 
         :param token: Token string to check
@@ -46,8 +45,9 @@ class SecureToken:
             raise MissingToken("Missing secure token")
 
         try:
-            return jwt.decode(token, self._secret, self.TOKEN_ALGORITHM)
-        except ExpiredSignatureError as err:
-            raise InvalidToken("Expired secure token") from err
-        except JWTError as err:
-            raise InvalidToken("Invalid secure token") from err
+            claims = jwt.decode(token, self._secret).claims
+            jwt.JWTClaimsRegistry().validate(claims)
+        except JoseError as err:
+            raise InvalidToken() from err
+
+        return claims
