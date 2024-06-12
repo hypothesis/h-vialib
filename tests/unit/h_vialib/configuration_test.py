@@ -78,11 +78,11 @@ class TestConfiguration:
         )
 
         # Original via settings are wiped
-        assert url_with_config != Any.url.containing_query({"via.client.focus": "3"})
+        assert url_with_config != Any.url().containing_query({"via.client.focus": "3"})
 
     def assert_correct_params(self, via_params, client_params):
         assert via_params == {"setting": "setting_last"}
-        assert client_params == Any.dict.containing({"focus": "focus_last"})
+        assert client_params == Any.dict().containing({"focus": "focus_last"})
 
     @pytest.fixture
     def url_with_params(self, query_string):
