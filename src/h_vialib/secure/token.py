@@ -2,6 +2,7 @@
 
 from joserfc import jwt
 from joserfc.errors import JoseError
+from joserfc.jwk import OctKey
 
 from h_vialib.exceptions import InvalidToken, MissingToken
 from h_vialib.secure.expiry import as_expires
@@ -17,7 +18,7 @@ class SecureToken:
 
         :param secret: The secret to sign and check tokens with
         """
-        self._secret = secret
+        self._key = OctKey.import_key(secret)
 
     def create(self, payload=None, expires=None, max_age=None) -> str:
         """Create a secure token.
@@ -30,7 +31,7 @@ class SecureToken:
         :raise ValueError: if neither expires nor max_age is specified
         """
         payload["exp"] = int(as_expires(expires, max_age).timestamp())
-        return jwt.encode({"alg": self.TOKEN_ALGORITHM}, payload, self._secret)
+        return jwt.encode({"alg": self.TOKEN_ALGORITHM}, payload, self._key)
 
     def verify(self, token: str) -> dict:
         """Decode a token and check for validity.
@@ -45,7 +46,7 @@ class SecureToken:
             raise MissingToken("Missing secure token")
 
         try:
-            claims = jwt.decode(token, self._secret).claims
+            claims = jwt.decode(token, self._key).claims
             jwt.JWTClaimsRegistry().validate(claims)
         except JoseError as err:
             raise InvalidToken() from err
