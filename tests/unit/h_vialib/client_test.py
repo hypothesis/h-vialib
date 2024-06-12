@@ -112,7 +112,7 @@ class TestViaClient:
         override = {"via.client.openSidebar": "0"}
         final_url = client.url_for("http://example.com", content_type, options=override)
 
-        assert final_url == Any.url.containing_query(override)
+        assert final_url == Any.url().containing_query(override)
 
     def test_url_for_with_headers(self, client, Encryption):
         headers = {"some": "header"}
@@ -121,7 +121,7 @@ class TestViaClient:
         final_url = client.url_for("http://example.com", headers=headers)
 
         Encryption.return_value.encrypt_dict.assert_called_once_with(headers)
-        assert final_url == Any.url.containing_query(
+        assert final_url == Any.url().containing_query(
             {"via.secret.headers": "secure headers"}
         )
 
@@ -132,7 +132,7 @@ class TestViaClient:
         final_url = client.url_for("http://example.com", query=query)
 
         Encryption.return_value.encrypt_dict.assert_called_once_with(query)
-        assert final_url == Any.url.containing_query(
+        assert final_url == Any.url().containing_query(
             {"via.secret.query": "secure query"}
         )
 
