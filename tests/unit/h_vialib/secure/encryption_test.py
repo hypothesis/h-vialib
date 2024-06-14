@@ -1,5 +1,4 @@
 import pytest
-from unittest.mock import Mock
 
 from h_vialib.secure import Encryption
 
@@ -50,18 +49,6 @@ class TestEncryptionPatched:
         )
         json.loads.assert_called_once_with(jwe.decrypt_compact.return_value.plaintext)
         assert plain_text_dict == json.loads.return_value
-
-    def test_decrypt_dict_None(self, encryption, secret, json, jwe, OctKey):
-        jwe.decrypt_compact.return_value = Mock(plaintext=None)
-
-        plain_text_dict = encryption.decrypt_dict("payload")
-
-        OctKey.import_key.assert_called_once_with(secret.ljust(32))
-        jwe.decrypt_compact.assert_called_once_with(
-            "payload", OctKey.import_key.return_value
-        )
-        json.loads.assert_not_called()
-        assert plain_text_dict == {}
 
     @pytest.fixture(autouse=True)
     def json(self, patch):

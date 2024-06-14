@@ -21,6 +21,8 @@ class Encryption:
     def decrypt_dict(self, payload: str) -> dict:
         """Decrypts payloads created by `encrypt_dict`."""
         data = jwe.decrypt_compact(payload, self._key).plaintext
-        if not data:
-            return {}
+        # While is possible to have an message with an empty plaintext
+        # we always serialize it to json we we'd have "null" as the payload.
+        # Assert this for the typechecker
+        assert data
         return json.loads(data)
