@@ -21,4 +21,6 @@ class Encryption:
     def decrypt_dict(self, payload: str) -> dict:
         """Decrypts payloads created by `encrypt_dict`."""
         data = jwe.decrypt_compact(payload, self._key).plaintext
+        if not data:
+            return {}
         return json.loads(data)
