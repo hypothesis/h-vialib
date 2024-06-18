@@ -18,7 +18,13 @@ class Encryption:
             protected, json.dumps(payload).encode("utf-8"), self._key
         )
 
-    def decrypt_dict(self, payload: str) -> dict:
-        """Decrypts payloads created by `encrypt_dict`."""
-        data = jwe.decrypt_compact(payload, self._key).plaintext
+    def decrypt_dict(self, encrypted_json: str) -> dict:
+        """Return `encrypted_json` decrypted and deserialized to a dict."""
+        data = jwe.decrypt_compact(encrypted_json, self._key).plaintext
+
+        # This decrypt_dict() method is only used to decrypt dicts from the
+        # encrypt_dict() method above, so we know that the decrypted data is
+        # always a non-empty dict, never None or {}.
+        assert data
+
         return json.loads(data)
