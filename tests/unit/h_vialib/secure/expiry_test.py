@@ -29,6 +29,7 @@ class TestQuantizedExpiry:
         # It's at most max_age
         assert diff <= timedelta(seconds=120)
 
+    # pylint:disable=too-many-positional-arguments
     @pytest.mark.parametrize(
         "max_age,divisions,time_offset,expiry_offset",
         (

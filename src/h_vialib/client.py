@@ -55,7 +55,7 @@ class ViaClient:  # pylint: disable=too-few-public-methods
             "via.external_link_mode": "new-tab",
         }
 
-    # pylint:disable=too-many-arguments
+    # pylint:disable=too-many-arguments,too-many-positional-arguments
     def url_for(
         self,
         url,

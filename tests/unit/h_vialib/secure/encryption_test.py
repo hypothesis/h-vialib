@@ -26,6 +26,7 @@ class TestEncryption:
 class TestEncryptionPatched:
     """Tests for h_vialib.secure.encryption that patch joserfc."""
 
+    # pylint:disable=too-many-positional-arguments
     def test_encrypt_dict(self, encryption, secret, OctKey, json, jwe):
         payload_dict = {"some": "data"}
 
@@ -40,6 +41,7 @@ class TestEncryptionPatched:
         )
         assert encrypted == jwe.encrypt_compact.return_value
 
+    # pylint:disable=too-many-positional-arguments
     def test_decrypt_dict(self, encryption, secret, json, jwe, OctKey):
         plain_text_dict = encryption.decrypt_dict("payload")
 
