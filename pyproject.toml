@@ -2,6 +2,27 @@
 requires = ["setuptools>=45", "setuptools_scm[toml]>=6.2"]
 build-backend = "setuptools.build_meta"
 
+[project]
+dynamic = ["version"]
+name = "h-vialib"
+description = "Library functions for use with Via."
+readme = "README.md"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: BSD License",
+    "Intended Audience :: Developers",
+]
+requires-python = ">=3.9"
+dependencies = [
+    "joserfc",
+    "webob",
+]
+
+[project.urls]
+Repository = "https://github.com/hypothesis/h-vialib"
+Issues = "https://github.com/hypothesis/h-vialib/issues"
+Changelog = "https://github.com/hypothesis/h-vialib/releases"
+
 [tool.setuptools_scm]
 
 [tool.pytest.ini_options]
