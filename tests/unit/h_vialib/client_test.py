@@ -141,7 +141,7 @@ class TestViaClient:
         client = ViaClient(
             service_url=None,
             html_service_url=None,
-            secret="not_a_secret",
+            secret="this_is_not_a_secret",
         )
 
         with pytest.raises(ValueError):
@@ -171,5 +171,5 @@ class TestViaClient:
         return ViaClient(
             service_url=self.VIA_URL,
             html_service_url=self.VIAHTML_URL,
-            secret="not_a_secret",
+            secret="this_is_not_a_secret",
         )

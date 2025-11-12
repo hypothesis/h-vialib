@@ -35,9 +35,9 @@ class TestSecureURL:
     @pytest.mark.parametrize("payload", ({}, {"h": "not_a_hash_at_all"}))
     def test_verify_fails_with_bad_tokens(self, secure_url, payload):
         # Use a vanilla secret token to make a broken token
-        url = "http://example.com?tok.sec=" + SecureToken("not_a_secret").create(
-            payload, max_age=10
-        )
+        url = "http://example.com?tok.sec=" + SecureToken(
+            "this_is_not_a_secret"
+        ).create(payload, max_age=10)
 
         with pytest.raises(InvalidToken):
             secure_url.verify(url)
@@ -55,7 +55,7 @@ class TestSecureURL:
 
     @pytest.fixture
     def secure_url(self):
-        return SecureURL("not_a_secret", "tok.sec")
+        return SecureURL("this_is_not_a_secret", "tok.sec")
 
 
 class TestViaSecureURL:
@@ -69,7 +69,7 @@ class TestViaSecureURL:
         ],
     )
     def test_round_tripping(self, quantized_expiry, given_max_age, expected_max_age):
-        token = ViaSecureURL("not_a_secret")
+        token = ViaSecureURL("this_is_not_a_secret")
 
         signed_url = token.create("http://example.com?via.sec=OLD_TOKEN", given_max_age)
         decoded = token.verify(signed_url)
